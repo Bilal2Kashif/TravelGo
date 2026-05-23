@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Trips — TravelGo Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% const adminPage = '/admin/trips'; %>
+<div class="app-layout">
+  <%- include('sidebar') %>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Trip Management</div>
+      <div class="topbar-user">
+        <div class="avatar" style="background:var(--warning);">A</div>
+        <span>Admin</span>
+      </div>
+    </div>
+    <div class="page-body">
+
+      <div class="two-col" style="align-items:start;">
+
+        <!-- Add Trip Form -->
+        <div class="card">
+          <h3 class="section-title mb-2">➕ Schedule New Trip</h3>
+
+          <% if (error) { %><div class="alert alert-error" style="margin-top:12px;">⚠️ <%= error %></div><% } %>
+          <% if (typeof query !== 'undefined' && query && query.success) { %><div class="alert alert-success" style="margin-top:12px;">✅ Trip added successfully!</div><% } %>
+
+          <form action="/admin/trips/add" method="POST" style="margin-top:20px;">
+            <div class="form-group">
+              <label class="form-label">Vehicle / Transport</label>
+              <select name="transportId" class="form-control" required>
+                <option value="">Select vehicle</option>
+                <% transport.forEach(t => { %>
+                  <option value="<%= t.TransportID %>">
+                    <%= t.TransportType === 'Bus' ? '🚌' : t.TransportType === 'Train' ? '🚂' : '✈' %>
+                    <%= t.TransportName %> (<%= t.Type %>, <%= t.Capacity %> seats)
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="form-group">
+                <label class="form-label">Departure City</label>
+                <input type="text" name="departsFrom" class="form-control" placeholder="e.g. Lahore" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Arrival City</label>
+                <input type="text" name="arrivesAt" class="form-control" placeholder="e.g. Karachi" required>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+              <div class="form-group">
+                <label class="form-label">Trip Date</label>
+                <input type="date" name="tripDate" class="form-control"
+                       min="<%= new Date().toISOString().split('T')[0] %>" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Departure Time</label>
+                <input type="time" name="departureTime" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Price (PKR)</label>
+              <input type="number" name="price" class="form-control"
+                     min="100" max="100000" step="50" placeholder="1500" required>
+            </div>
+
+            <button type="submit" class="btn btn-mint btn-full btn-lg" style="margin-top:8px;">
+              Publish Trip
+            </button>
+          </form>
+        </div>
+
+        <!-- Trip List -->
+        <div>
+          <h2 class="section-title mb-2" style="margin-bottom:16px;">
+            All Trips (<%= trips.length %>)
+          </h2>
+          <% trips.slice(0,20).forEach(t => { %>
+            <div style="background:var(--white);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:10px;box-shadow:var(--shadow);border-left:4px solid var(--mint);">
+              <div style="font-weight:700;font-size:15px;">
+                <%= t.DepartureCity %> → <%= t.ArrivalCity %>
+              </div>
+              <div style="font-size:13px;color:var(--text-mid);margin-top:2px;">
+                <%= t.TransportName %> (<%= t.TransportType %>)
+                &nbsp;·&nbsp;
+                <%= new Date(t.TripDate).toLocaleDateString('en-PK', {weekday:'short',day:'numeric',month:'short',year:'numeric'}) %>
+                &nbsp;·&nbsp;
+                <strong style="color:var(--mint);">PKR <%= Number(t.Price).toLocaleString() %></strong>
+                &nbsp;·&nbsp;
+                <%= t.AvailableSeats %> / <%= t.Capacity %> seats
+              </div>
+            </div>
+          <% }) %>
+          <% if (trips.length > 20) { %>
+            <p style="color:var(--text-light);font-size:13px;text-align:center;">
+              Showing 20 of <%= trips.length %> trips
+            </p>
+          <% } %>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bookings — TravelGo Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% const adminPage = '/admin/bookings'; %>
+<div class="app-layout">
+  <%- include('sidebar') %>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">All Bookings</div>
+      <div class="topbar-user">
+        <div class="avatar" style="background:var(--warning);">A</div>
+        <span>Admin</span>
+      </div>
+    </div>
+    <div class="page-body">
+
+      <div class="section-header">
+        <h2 class="section-title">All Bookings (<%= bookings.length %>)</h2>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-mint btn-sm" onclick="filterTable('All')">All</button>
+          <button class="btn btn-ice btn-sm"  onclick="filterTable('Upcoming')">Upcoming</button>
+          <button class="btn btn-ice btn-sm"  onclick="filterTable('Completed')">Completed</button>
+          <button class="btn btn-ice btn-sm"  onclick="filterTable('Cancelled')">Cancelled</button>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="table-wrap">
+          <table id="bTable">
+            <thead>
+              <tr>
+                <th>Booking ID</th>
+                <th>Passenger</th>
+                <th>Route</th>
+                <th>Transport</th>
+                <th>Trip Date</th>
+                <th>Seat</th>
+                <th>Amount</th>
+                <th>Payment</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% bookings.forEach(b => { %>
+                <tr data-status="<%= b.Status %>">
+                  <td><strong>#<%= b.BookingID %></strong></td>
+                  <td>
+                    <div style="font-weight:600;"><%= b.PassengerName %></div>
+                    <div style="font-size:12px;color:var(--text-light);"><%= b.Email %></div>
+                  </td>
+                  <td><strong><%= b.From_City %> → <%= b.To_City %></strong></td>
+                  <td>
+                    <%= b.TransportType === 'Bus' ? '🚌' : b.TransportType === 'Train' ? '🚂' : '✈' %>
+                    <%= b.TransportName %>
+                  </td>
+                  <td><%= new Date(b.TripDate).toLocaleDateString('en-PK', {day:'numeric',month:'short',year:'numeric'}) %></td>
+                  <td><%= b.SeatNumber %></td>
+                  <td><strong>PKR <%= Number(b.AmountPaid || 0).toLocaleString() %></strong></td>
+                  <td><%= b.PaymentMethod || '—' %></td>
+                  <td>
+                    <span class="badge badge-<%= b.Status.toLowerCase() %>">
+                      <%= b.Status %>
+                    </span>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function filterTable(status) {
+  const rows = document.querySelectorAll('#bTable tbody tr');
+  rows.forEach(r => {
+    r.style.display = (status === 'All' || r.dataset.status === status) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

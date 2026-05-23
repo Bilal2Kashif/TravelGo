@@ -1,0 +1,29 @@
+<%
+const pages = [
+  { href: '/dashboard',         icon: '🏠', label: 'Dashboard'    },
+  { href: '/booking',           icon: '🎫', label: 'Book a Trip'  },
+  { href: '/dashboard/history', icon: '📋', label: 'Trip History' },
+  { href: '/feedback',          icon: '⭐', label: 'Feedback'     }
+];
+%>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span>Travel<em>Go</em></span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <% pages.forEach(p => { %>
+      <a href="<%= p.href %>"
+         class="nav-item <%= currentPage === p.href ? 'active' : '' %>">
+        <span class="nav-icon"><%= p.icon %></span>
+        <%= p.label %>
+      </a>
+    <% }) %>
+  </nav>
+
+  <div class="sidebar-footer">
+    <a href="/logout" class="nav-item" style="color: rgba(255,200,200,0.8);">
+      <span class="nav-icon">🚪</span> Logout
+    </a>
+  </div>
+</aside>

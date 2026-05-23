@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register — TravelGo</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="auth-wrap">
+
+  <!-- LEFT: Form -->
+  <div class="auth-left" style="max-width:600px;">
+    <div class="auth-brand">Travel<em>Go</em></div>
+    <h1 class="auth-heading">Create account</h1>
+    <p class="auth-sub">Start booking your trips today</p>
+
+    <% if (error) { %>
+      <div class="alert alert-error">⚠️ <%= error %></div>
+    <% } %>
+
+    <form action="/register" method="POST">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input type="text" name="firstName" class="form-control"
+                 placeholder="Ali" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input type="text" name="lastName" class="form-control"
+                 placeholder="Khan" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" name="email" class="form-control"
+               placeholder="ali@example.com" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" class="form-control"
+               placeholder="Minimum 6 characters" required minlength="6">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Phone (optional)</label>
+          <input type="tel" name="phone" class="form-control" placeholder="0300-0000000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of Birth (optional)</label>
+          <input type="date" name="dob" class="form-control" max="<%= new Date().toISOString().split('T')[0] %>">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-mint btn-lg btn-full" style="margin-top:4px;">
+        Create Account →
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      Already have an account?
+      <a href="/login" style="font-weight:700;">Login</a>
+    </p>
+  </div>
+
+  <!-- RIGHT: Hero -->
+  <div class="auth-right">
+    <h2 class="auth-right-title">Join<br>TravelGo.</h2>
+    <p class="auth-right-text">
+      Thousands of routes across Pakistan.
+      Book bus, train, and flight tickets — all in one place.
+    </p>
+    <div class="auth-right-chips">
+      <span class="chip">📍 8 Cities</span>
+      <span class="chip">🎯 Instant Confirmation</span>
+      <span class="chip">💳 Multiple Payments</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

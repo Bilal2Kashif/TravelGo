@@ -1,0 +1,29 @@
+<%
+const adminNav = [
+  { href: '/admin',            icon: '📊', label: 'Dashboard'  },
+  { href: '/admin/bookings',   icon: '🎫', label: 'Bookings'   },
+  { href: '/admin/users',      icon: '👥', label: 'Users'      },
+  { href: '/admin/trips',      icon: '🗺️', label: 'Trips'      },
+  { href: '/admin/vehicles',   icon: '🚌', label: 'Vehicles'   },
+  { href: '/admin/feedbacks',  icon: '⭐', label: 'Feedbacks'  }
+];
+%>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span>Travel<em>Go</em> <span style="font-size:11px;opacity:0.6;font-weight:400;">Admin</span></span>
+  </div>
+  <nav class="sidebar-nav">
+    <% adminNav.forEach(p => { %>
+      <a href="<%= p.href %>"
+         class="nav-item <%= adminPage === p.href ? 'active' : '' %>">
+        <span class="nav-icon"><%= p.icon %></span>
+        <%= p.label %>
+      </a>
+    <% }) %>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="/admin/logout" class="nav-item" style="color:rgba(255,200,200,0.8);">
+      <span class="nav-icon">🚪</span> Logout
+    </a>
+  </div>
+</aside>

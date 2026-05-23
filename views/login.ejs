@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login — TravelGo</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="auth-wrap">
+
+  <!-- LEFT: Form -->
+  <div class="auth-left">
+    <div class="auth-brand">Travel<em>Go</em></div>
+
+    <h1 class="auth-heading">Welcome back</h1>
+    <p class="auth-sub">Login to continue your journey</p>
+
+    <% if (error) { %>
+      <div class="alert alert-error">⚠️ <%= error %></div>
+    <% } %>
+    <% if (typeof query !== 'undefined' && query && query.registered) { %>
+      <div class="alert alert-success">✅ Account created! Please log in.</div>
+    <% } %>
+
+    <form action="/login" method="POST">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" name="email" class="form-control"
+               placeholder="you@example.com" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" id="passInput" class="form-control"
+               placeholder="Enter your password" required>
+      </div>
+
+      <button type="submit" class="btn btn-mint btn-lg btn-full" style="margin-top:8px;">
+        Login to Dashboard →
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      Don't have an account?
+      <a href="/register" style="font-weight:700;">Sign up</a>
+    </p>
+
+    <p class="auth-switch" style="margin-top:8px;">
+      Admin?
+      <a href="/admin/login" style="font-weight:700;">Admin Panel</a>
+    </p>
+  </div>
+
+  <!-- RIGHT: Hero -->
+  <div class="auth-right">
+    <h2 class="auth-right-title">Book Every<br>Journey.</h2>
+    <p class="auth-right-text">
+      Bus, train, or flight — find your next trip in seconds.
+      Simple booking. Instant confirmation.
+    </p>
+    <div class="auth-right-chips">
+      <span class="chip">🚌 Buses</span>
+      <span class="chip">🚂 Trains</span>
+      <span class="chip">✈ Flights</span>
+      <span class="chip">🎫 Instant Booking</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feedbacks — TravelGo Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .stars { color: #F5A623; font-size: 15px; letter-spacing: 2px; }
+    .rating-bar-wrap { display:flex; align-items:center; gap:10px; margin-bottom:7px; }
+    .rating-bar-bg   { flex:1; height:8px; background:var(--ice); border-radius:4px; }
+    .rating-bar-fill { height:8px; background:var(--mint); border-radius:4px; }
+  </style>
+</head>
+<body>
+<% const adminPage = '/admin/feedbacks'; %>
+<div class="app-layout">
+
+  <%- include('sidebar') %>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Feedback & Reviews</div>
+      <div class="topbar-user">
+        <div class="avatar" style="background:var(--warning);">A</div>
+        <span>Admin</span>
+      </div>
+    </div>
+
+    <div class="page-body">
+
+      <!-- Summary cards -->
+      <div class="admin-stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:28px;">
+        <div class="admin-stat">
+          <div class="val">💬 <%= summary.TotalReviews || 0 %></div>
+          <div class="lbl">Total Reviews</div>
+        </div>
+        <div class="admin-stat">
+          <div class="val">⭐ <%= summary.AvgRating ? Number(summary.AvgRating).toFixed(1) : '—' %></div>
+          <div class="lbl">Average Rating</div>
+        </div>
+        <div class="admin-stat" style="border-top-color:#2E9E6B;">
+          <div class="val">🤩 <%= summary.FiveStars || 0 %></div>
+          <div class="lbl">5-Star Reviews</div>
+        </div>
+        <div class="admin-stat" style="border-top-color:var(--danger);">
+          <div class="val">😕 <%= summary.OneStar || 0 %></div>
+          <div class="lbl">1-Star Reviews</div>
+        </div>
+      </div>
+
+      <div class="two-col" style="align-items:start;">
+
+        <!-- LEFT: All feedback table -->
+        <div style="grid-column:span 2;">
+          <div class="section-header">
+            <h2 class="section-title">All Reviews</h2>
+            <!-- Filter by rating -->
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-mint btn-sm" onclick="filterRating(0)">All</button>
+              <% for(let s=5;s>=1;s--){ %>
+                <button class="btn btn-ice btn-sm" onclick="filterRating(<%= s %>)">
+                  <%= s %>⭐
+                </button>
+              <% } %>
+            </div>
+          </div>
+
+          <% if (feedbacks.length === 0) { %>
+            <div class="card" style="text-align:center;padding:48px;">
+              <div style="font-size:44px;margin-bottom:10px;">💬</div>
+              <p style="color:var(--text-mid);">No feedback submitted yet.</p>
+            </div>
+          <% } else { %>
+            <div class="card" style="padding:0;overflow:hidden;">
+              <div class="table-wrap">
+                <table id="fbTable">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Passenger</th>
+                      <th>Route</th>
+                      <th>Transport</th>
+                      <th>Trip Date</th>
+                      <th>Rating</th>
+                      <th>Comment</th>
+                      <th>Submitted</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% feedbacks.forEach(f => { %>
+                      <tr data-rating="<%= f.Rating %>">
+                        <td><strong>#<%= f.FeedbackID %></strong></td>
+                        <td>
+                          <div style="font-weight:600;"><%= f.PassengerName %></div>
+                          <div style="font-size:12px;color:var(--text-light);"><%= f.Email %></div>
+                        </td>
+                        <td><strong><%= f.From_City %> → <%= f.To_City %></strong></td>
+                        <td>
+                          <%= f.TransportType === 'Bus' ? '🚌' : f.TransportType === 'Train' ? '🚂' : '✈' %>
+                          <%= f.TransportName %>
+                        </td>
+                        <td><%= new Date(f.TripDate).toLocaleDateString('en-PK', {day:'numeric',month:'short',year:'numeric'}) %></td>
+                        <td>
+                          <span class="stars">
+                            <% for(let i=1;i<=5;i++){ %><%= i <= f.Rating ? '⭐' : '☆' %><% } %>
+                          </span>
+                          <span style="font-size:12px;color:var(--text-light);margin-left:4px;">(<%= f.Rating %>/5)</span>
+                        </td>
+                        <td style="max-width:220px;">
+                          <% if (f.CommentMessage) { %>
+                            <span style="font-size:13px;color:var(--text-dark);">"<%= f.CommentMessage.length > 80 ? f.CommentMessage.slice(0,80)+'…' : f.CommentMessage %>"</span>
+                          <% } else { %>
+                            <span style="color:var(--text-light);font-size:13px;">No comment</span>
+                          <% } %>
+                        </td>
+                        <td style="white-space:nowrap;font-size:13px;color:var(--text-mid);">
+                          <%= new Date(f.SubmittedDate).toLocaleDateString('en-PK', {day:'numeric',month:'short',year:'numeric'}) %>
+                        </td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Rating distribution -->
+            <div class="card" style="margin-top:24px;">
+              <h3 class="section-title" style="margin-bottom:18px;">Rating Distribution</h3>
+              <% for(let s=5;s>=1;s--) {
+                   const count = feedbacks.filter(f => f.Rating === s).length;
+                   const pct   = feedbacks.length ? Math.round((count / feedbacks.length) * 100) : 0;
+              %>
+                <div class="rating-bar-wrap">
+                  <span style="width:24px;font-weight:700;color:var(--text-dark);"><%= s %></span>
+                  <span style="font-size:14px;">⭐</span>
+                  <div class="rating-bar-bg">
+                    <div class="rating-bar-fill" style="width:<%= pct %>%;"></div>
+                  </div>
+                  <span style="width:48px;font-size:13px;color:var(--text-mid);text-align:right;">
+                    <%= count %> (<%= pct %>%)
+                  </span>
+                </div>
+              <% } %>
+            </div>
+
+          <% } %>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function filterRating(rating) {
+  const rows = document.querySelectorAll('#fbTable tbody tr');
+  rows.forEach(r => {
+    r.style.display = (!rating || parseInt(r.dataset.rating) === rating) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

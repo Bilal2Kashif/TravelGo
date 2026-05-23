@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trip History — TravelGo</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% const currentPage = '/dashboard/history'; %>
+<div class="app-layout">
+
+  <%- include('partials/sidebar') %>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Trip History</div>
+      <div class="topbar-user">
+        <div class="avatar"><%= user.FirstName[0].toUpperCase() %></div>
+        <span><%= user.FirstName %> <%= user.LastName %></span>
+      </div>
+    </div>
+
+    <div class="page-body">
+
+      <div class="section-header">
+        <h2 class="section-title">All Your Bookings</h2>
+        <a href="/booking" class="btn btn-mint btn-sm">+ Book New Trip</a>
+      </div>
+
+      <!-- Filter tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:24px;" id="filterTabs">
+        <button class="btn btn-mint btn-sm" onclick="filterTable('All')">All</button>
+        <button class="btn btn-ice btn-sm"  onclick="filterTable('Upcoming')">Upcoming</button>
+        <button class="btn btn-ice btn-sm"  onclick="filterTable('Completed')">Completed</button>
+        <button class="btn btn-ice btn-sm"  onclick="filterTable('Cancelled')">Cancelled</button>
+      </div>
+
+      <% if (bookings.length === 0) { %>
+        <div class="card" style="text-align:center;padding:48px;">
+          <div style="font-size:48px;margin-bottom:12px;">📭</div>
+          <p style="color:var(--text-mid);">No bookings found in your history.</p>
+          <a href="/booking" class="btn btn-mint" style="margin-top:20px;">Book a Trip</a>
+        </div>
+      <% } else { %>
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div class="table-wrap">
+            <table id="historyTable">
+              <thead>
+                <tr>
+                  <th>Booking ID</th>
+                  <th>Route</th>
+                  <th>Transport</th>
+                  <th>Trip Date</th>
+                  <th>Seat</th>
+                  <th>Amount</th>
+                  <th>Payment</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% bookings.forEach(b => { %>
+                  <tr data-status="<%= b.Status %>">
+                    <td><strong>#<%= b.BookingID %></strong></td>
+                    <td>
+                      <strong><%= b.From_City %> → <%= b.To_City %></strong>
+                    </td>
+                    <td>
+                      <%= b.TransportType === 'Bus' ? '🚌' : b.TransportType === 'Train' ? '🚂' : '✈' %>
+                      <%= b.TransportName %>
+                    </td>
+                    <td><%= new Date(b.TripDate).toLocaleDateString('en-PK', {day:'numeric',month:'short',year:'numeric'}) %></td>
+                    <td><%= b.SeatNumber %></td>
+                    <td><strong>PKR <%= Number(b.AmountPaid || b.Price || 0).toLocaleString() %></strong></td>
+                    <td><%= b.PaymentMethod || '—' %></td>
+                    <td>
+                      <span class="badge badge-<%= b.Status.toLowerCase() %>">
+                        <%= b.Status %>
+                      </span>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% } %>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function filterTable(status) {
+  const rows = document.querySelectorAll('#historyTable tbody tr');
+  rows.forEach(r => {
+    r.style.display = (status === 'All' || r.dataset.status === status) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feedback — TravelGo</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .star-row { display: flex; gap: 6px; margin: 8px 0 20px; }
+    .star-btn {
+      font-size: 28px; background: none; border: none;
+      cursor: pointer; opacity: 0.35; transition: opacity 0.15s, transform 0.15s;
+      line-height: 1;
+    }
+    .star-btn.on  { opacity: 1; transform: scale(1.15); }
+    .star-btn:hover { opacity: 0.8; }
+
+    .trip-select-card {
+      background: var(--white);
+      border: 2px solid var(--ice-dark);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .trip-select-card:hover   { border-color: var(--mint); }
+    .trip-select-card.picked  { border-color: var(--mint); background: var(--mint-light); }
+
+    .stars-display { color: #F5A623; letter-spacing: 2px; font-size: 15px; }
+  </style>
+</head>
+<body>
+<% const currentPage = '/feedback'; %>
+<div class="app-layout">
+
+  <%- include('partials/sidebar') %>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Feedback & Reviews</div>
+      <div class="topbar-user">
+        <div class="avatar"><%= user.FirstName[0].toUpperCase() %></div>
+        <span><%= user.FirstName %> <%= user.LastName %></span>
+      </div>
+    </div>
+
+    <div class="page-body">
+
+      <% if (success) { %>
+        <div class="alert alert-success">⭐ Thank you! Your feedback has been submitted.</div>
+      <% } %>
+      <% if (error) { %>
+        <div class="alert alert-error">⚠️ <%= error %></div>
+      <% } %>
+
+      <div class="two-col" style="align-items:start;gap:32px;">
+
+        <!-- LEFT: Write a Review -->
+        <div>
+          <h2 class="section-title" style="margin-bottom:18px;">✍️ Write a Review</h2>
+
+          <% if (eligible.length === 0) { %>
+            <div class="card" style="text-align:center;padding:40px;">
+              <div style="font-size:40px;margin-bottom:10px;">🏁</div>
+              <p style="color:var(--text-mid);">
+                No completed trips to review right now.<br>
+                Complete a trip and come back here!
+              </p>
+              <a href="/booking" class="btn btn-mint" style="margin-top:18px;">Book a Trip</a>
+            </div>
+          <% } else { %>
+
+            <!-- Step 1: Pick trip -->
+            <div class="card" style="margin-bottom:20px;">
+              <p style="font-size:13px;font-weight:600;text-transform:uppercase;
+                         color:var(--text-mid);margin-bottom:12px;">
+                Step 1 — Select a completed trip
+              </p>
+
+              <% eligible.forEach(t => { %>
+                <div class="trip-select-card"
+                     id="tcard-<%= t.TripID %>"
+                     onclick="selectTrip(<%= t.TripID %>, '<%= t.From_City %> → <%= t.To_City %>')">
+                  <span style="font-size:22px;">
+                    <%= t.TransportType === 'Bus' ? '🚌' : t.TransportType === 'Train' ? '🚂' : '✈' %>
+                  </span>
+                  <div style="flex:1;">
+                    <div style="font-weight:700;"><%= t.From_City %> → <%= t.To_City %></div>
+                    <div style="font-size:13px;color:var(--text-mid);">
+                      <%= t.TransportName %> &nbsp;·&nbsp;
+                      <%= new Date(t.TripDate).toLocaleDateString('en-PK', {day:'numeric',month:'short',year:'numeric'}) %>
+                    </div>
+                  </div>
+                  <div id="check-<%= t.TripID %>" style="display:none;color:var(--mint);font-size:22px;">✓</div>
+                </div>
+              <% }) %>
+            </div>
+
+            <!-- Step 2: Rating + Comment -->
+            <div class="card" id="reviewForm" style="display:none;">
+              <p style="font-size:13px;font-weight:600;text-transform:uppercase;
+                         color:var(--text-mid);margin-bottom:12px;">
+                Step 2 — Rate your trip: <strong id="tripLabel" style="color:var(--mint);"></strong>
+              </p>
+
+              <form action="/feedback/submit" method="POST">
+                <input type="hidden" name="tripId" id="tripIdInput">
+
+                <label class="form-label">Your Rating</label>
+                <div class="star-row" id="starRow">
+                  <button type="button" class="star-btn" data-val="1" onclick="setRating(1)">⭐</button>
+                  <button type="button" class="star-btn" data-val="2" onclick="setRating(2)">⭐</button>
+                  <button type="button" class="star-btn" data-val="3" onclick="setRating(3)">⭐</button>
+                  <button type="button" class="star-btn" data-val="4" onclick="setRating(4)">⭐</button>
+                  <button type="button" class="star-btn" data-val="5" onclick="setRating(5)">⭐</button>
+                </div>
+                <input type="hidden" name="rating" id="ratingInput" value="">
+                <div id="ratingLabel" style="font-size:13px;color:var(--text-mid);margin-bottom:16px;">
+                  Click a star to rate
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Comment (optional)</label>
+                  <textarea name="comment" class="form-control"
+                            rows="4" placeholder="Share your experience..."
+                            style="resize:vertical;"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-mint btn-full btn-lg"
+                        id="submitBtn" disabled>
+                  Submit Review
+                </button>
+              </form>
+            </div>
+
+          <% } %>
+        </div>
+
+        <!-- RIGHT: Past Reviews -->
+        <div>
+          <h2 class="section-title" style="margin-bottom:18px;">📋 Your Past Reviews</h2>
+
+          <% if (submitted.length === 0) { %>
+            <div class="card" style="text-align:center;padding:36px;">
+              <div style="font-size:36px;margin-bottom:8px;">💬</div>
+              <p style="color:var(--text-light);">No reviews submitted yet.</p>
+            </div>
+          <% } else { %>
+            <% submitted.forEach(f => { %>
+              <div class="card card-sm" style="margin-bottom:14px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                  <div style="font-weight:700;font-size:15px;">
+                    <%= f.From_City %> → <%= f.To_City %>
+                  </div>
+                  <div class="stars-display">
+                    <% for(let i=1;i<=5;i++){ %><%= i <= f.Rating ? '⭐' : '☆' %><% } %>
+                  </div>
+                </div>
+                <div style="font-size:13px;color:var(--text-mid);margin-bottom:8px;">
+                  <%= f.TransportName %> &nbsp;·&nbsp;
+                  <%= new Date(f.TripDate).toLocaleDateString('en-PK', {day:'numeric',month:'short',year:'numeric'}) %>
+                  &nbsp;·&nbsp;
+                  Reviewed on <%= new Date(f.SubmittedDate).toLocaleDateString('en-PK', {day:'numeric',month:'short',year:'numeric'}) %>
+                </div>
+                <% if (f.CommentMessage) { %>
+                  <div style="background:var(--ice-light);border-radius:6px;padding:10px 14px;
+                               font-size:14px;color:var(--text-dark);border-left:3px solid var(--mint);">
+                    "<%= f.CommentMessage %>"
+                  </div>
+                <% } %>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentRating = 0;
+
+function selectTrip(id, label) {
+  // Deselect all
+  document.querySelectorAll('.trip-select-card').forEach(c => c.classList.remove('picked'));
+  document.querySelectorAll('[id^="check-"]').forEach(c => c.style.display = 'none');
+
+  // Select this one
+  document.getElementById('tcard-' + id).classList.add('picked');
+  document.getElementById('check-' + id).style.display = 'block';
+
+  // Update form
+  document.getElementById('tripIdInput').value  = id;
+  document.getElementById('tripLabel').textContent = label;
+  document.getElementById('reviewForm').style.display = 'block';
+  document.getElementById('reviewForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // Reset stars
+  currentRating = 0;
+  updateStars(0);
+  document.getElementById('submitBtn').disabled = true;
+}
+
+const labels = ['', 'Poor 😕', 'Fair 😐', 'Good 🙂', 'Great 😊', 'Excellent 🤩'];
+
+function setRating(val) {
+  currentRating = val;
+  document.getElementById('ratingInput').value = val;
+  document.getElementById('ratingLabel').textContent = labels[val];
+  updateStars(val);
+  document.getElementById('submitBtn').disabled = false;
+}
+
+function updateStars(val) {
+  document.querySelectorAll('.star-btn').forEach(b => {
+    b.classList.toggle('on', parseInt(b.dataset.val) <= val);
+  });
+}
+</script>
+</body>
+</html>

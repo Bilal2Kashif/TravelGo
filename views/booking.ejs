@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book a Trip — TravelGo</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% const currentPage = '/booking'; %>
+<div class="app-layout">
+
+  <%- include('partials/sidebar') %>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Book a Trip</div>
+      <div class="topbar-user">
+        <div class="avatar"><%= user.FirstName[0].toUpperCase() %></div>
+        <span><%= user.FirstName %> <%= user.LastName %></span>
+      </div>
+    </div>
+
+    <div class="page-body">
+
+      <!-- Search Bar -->
+      <form action="/booking/search" method="POST">
+        <div class="search-bar">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">From</label>
+            <select name="fromCity" class="form-control" required>
+              <option value="">Select city</option>
+              <% cities.forEach(c => { %>
+                <option value="<%= c %>"
+                  <%= search && search.fromCity === c ? 'selected' : '' %>>
+                  <%= c %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">To</label>
+            <select name="toCity" class="form-control" required>
+              <option value="">Select city</option>
+              <% cities.forEach(c => { %>
+                <option value="<%= c %>"
+                  <%= search && search.toCity === c ? 'selected' : '' %>>
+                  <%= c %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Date</label>
+            <input type="date" name="tripDate" class="form-control"
+                   min="<%= new Date().toISOString().split('T')[0] %>"
+                   value="<%= search ? search.tripDate : '' %>" required>
+          </div>
+
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Type</label>
+            <select name="transportType" class="form-control">
+              <option value="">All</option>
+              <option value="Bus"   <%= search && search.transportType === 'Bus'   ? 'selected' : '' %>>🚌 Bus</option>
+              <option value="Train" <%= search && search.transportType === 'Train' ? 'selected' : '' %>>🚂 Train</option>
+              <option value="Plane" <%= search && search.transportType === 'Plane' ? 'selected' : '' %>>✈ Plane</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-mint btn-full" style="align-self:flex-end;">
+            Search
+          </button>
+        </div>
+      </form>
+
+      <!-- Error -->
+      <% if (error) { %>
+        <div class="alert alert-error">⚠️ <%= error %></div>
+      <% } %>
+
+      <!-- Results -->
+      <% if (search) { %>
+        <div class="section-header">
+          <h2 class="section-title">
+            <%= trips.length %> trip<%= trips.length !== 1 ? 's' : '' %> found
+            — <%= search.fromCity %> → <%= search.toCity %>
+          </h2>
+        </div>
+
+        <% if (trips.length === 0) { %>
+          <div class="card" style="text-align:center;padding:40px;">
+            <div style="font-size:40px;margin-bottom:10px;">🔍</div>
+            <p style="color:var(--text-mid);">No trips found for this route and date. Try a different date.</p>
+          </div>
+        <% } else { %>
+          <% trips.forEach(t => { %>
+            <div class="trip-card" onclick="openBookingModal(<%= JSON.stringify(t) %>)">
+              <div>
+                <div class="trip-route">
+                  <%= t.DepartureCity %> → <%= t.ArrivalCity %>
+                </div>
+                <div class="trip-sub">
+                  <%= t.TransportType === 'Bus' ? '🚌' : t.TransportType === 'Train' ? '🚂' : '✈' %>
+                  <%= t.TransportName %>
+                </div>
+              </div>
+              <div>
+                <div style="font-weight:700;color:var(--text-dark);">
+                  📅 <%= new Date(t.TripDate).toLocaleDateString('en-PK', {weekday:'short',day:'numeric',month:'short'}) %>
+                </div>
+                <div class="trip-sub">🕐 <%= String(t.DepartureTime).slice(0,5) %></div>
+              </div>
+              <div>
+                <span class="badge" style="background:var(--mint-light);color:var(--mint-dark);">
+                  <%= t.AvailableSeats %> seats left
+                </span>
+              </div>
+              <div>
+                <span class="badge badge-<%= t.TransportType.toLowerCase() %>"
+                      style="background:var(--ice);color:var(--text-mid);">
+                  <%= t.TransportType %>
+                </span>
+              </div>
+              <div class="trip-price">
+                PKR <%= Number(t.Price).toLocaleString() %>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      <% } else { %>
+        <div class="card" style="text-align:center;padding:56px;">
+          <div style="font-size:52px;margin-bottom:16px;">✈</div>
+          <h3 style="color:var(--text-dark);margin-bottom:8px;">Where are you headed?</h3>
+          <p style="color:var(--text-mid);">Select your route above to search for available trips.</p>
+        </div>
+      <% } %>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Booking Modal ─────────────────────────────── -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 style="font-size:20px;font-weight:800;margin-bottom:4px;" id="modalTitle">Book Trip</h2>
+    <p style="color:var(--text-mid);font-size:14px;margin-bottom:20px;" id="modalSub"></p>
+
+    <hr>
+
+<!-- Seat number input -->
+  <div class="form-group" style="margin-bottom:20px;">
+  <label class="form-label" style="text-transform:uppercase;font-size:13px;">Seat Number</label>
+  <input type="number" id="seatInput" class="form-control" min="1"
+         placeholder="Enter your seat number"
+         oninput="onSeatInput(this.value)" />
+  <p id="seatHint" style="font-size:12px;color:var(--text-light);margin-top:6px;">
+  </p>
+</div>
+
+    <hr>
+
+    <!-- Payment method -->
+    <div class="form-group" style="margin-top:16px;">
+      <label class="form-label">Payment Method</label>
+      <select id="paymentMethod" class="form-control">
+        <option value="Cash">Cash</option>
+        <option value="CreditCard">Credit Card</option>
+        <option value="DebitCard">Debit Card</option>
+        <option value="Online">Online Transfer</option>
+      </select>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:8px;">
+      <button class="btn btn-mint btn-full" id="confirmBtn" onclick="confirmBooking()" disabled>
+        Confirm Booking
+      </button>
+      <button class="btn btn-ice" onclick="closeModal()" style="min-width:100px;">
+        Cancel
+      </button>
+    </div>
+
+    <div id="modalMsg" style="margin-top:12px;font-size:14px;font-weight:600;"></div>
+  </div>
+</div>
+<!----<SCRIPT>------>
+<script>
+let selectedTripID  = null;
+let selectedSeat    = null;
+let currentCapacity = null;
+
+function openBookingModal(trip) {
+  selectedTripID  = trip.TripID;
+  selectedSeat    = null;
+  currentCapacity = trip.Capacity;
+
+  document.getElementById('modalTitle').textContent =
+    trip.DepartureCity + ' → ' + trip.ArrivalCity;
+  document.getElementById('modalSub').textContent =
+    trip.TransportName + '  ·  ' +
+    new Date(trip.TripDate).toLocaleDateString('en-PK', {weekday:'long',day:'numeric',month:'long'}) +
+    '  ·  PKR ' + Number(trip.Price).toLocaleString();
+
+  document.getElementById('seatInput').value = '';
+  document.getElementById('seatHint').textContent = 'Total seats: ' + trip.Capacity;
+  document.getElementById('confirmBtn').disabled = true;
+  document.getElementById('modalMsg').textContent = '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function onSeatInput(val) {
+  const num = parseInt(val);
+  const hint = document.getElementById('seatHint');
+  if (!val || isNaN(num) || num < 1 || num > currentCapacity) {
+    document.getElementById('confirmBtn').disabled = true;
+    hint.style.color = 'var(--danger)';
+    hint.textContent = val ? `Invalid — must be between 1 and ${currentCapacity}` : `Total seats: ${currentCapacity}`;
+    selectedSeat = null;
+  } else {
+    selectedSeat = num;
+    document.getElementById('confirmBtn').disabled = false;
+    hint.style.color = 'var(--text-light)';
+    hint.textContent = `Total seats: ${currentCapacity}`;
+  }
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+async function confirmBooking() {
+  if (!selectedSeat) return;
+  const btn = document.getElementById('confirmBtn');
+  btn.disabled    = true;
+  btn.textContent = 'Processing...';
+
+  const res  = await fetch('/booking/confirm', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      tripId:        selectedTripID,
+      seatNumber:    selectedSeat,
+      paymentMethod: document.getElementById('paymentMethod').value
+    })
+  });
+  const data = await res.json();
+  const msg  = document.getElementById('modalMsg');
+
+  if (data.success) {
+    msg.style.color = 'var(--success)';
+    msg.textContent = '✅ Booked! Booking #' + data.bookingId + ' confirmed.';
+    btn.textContent = 'Confirmed ✓';
+    setTimeout(() => { closeModal(); location.href = '/dashboard'; }, 1800);
+  } else {
+    msg.style.color = 'var(--danger)';
+    msg.textContent = '❌ ' + data.message;
+    btn.disabled    = false;
+    btn.textContent = 'Confirm Booking';
+  }
+}
+</script>
+</body>
+</html>

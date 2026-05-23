@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Users — TravelGo Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% const adminPage = '/admin/users'; %>
+<div class="app-layout">
+  <%- include('sidebar') %>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">User Management</div>
+      <div class="topbar-user">
+        <div class="avatar" style="background:var(--warning);">A</div>
+        <span>Admin</span>
+      </div>
+    </div>
+    <div class="page-body">
+
+      <div class="section-header">
+        <h2 class="section-title">All Registered Users (<%= users.length %>)</h2>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Total Bookings</th>
+                <th>Total Spent</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% users.forEach(u => { %>
+                <tr id="urow-<%= u.UserID %>">
+                  <td><strong>#<%= u.UserID %></strong></td>
+                  <td><%= u.FirstName %> <%= u.LastName %></td>
+                  <td><%= u.Email %></td>
+                  <td><%= u.Phone || '—' %></td>
+                  <td><%= u.TotalBookings || 0 %></td>
+                  <td>PKR <%= Number(u.TotalSpent || 0).toLocaleString() %></td>
+                  <td>
+                    <button class="btn btn-danger btn-sm"
+                            onclick="deleteUser(<%= u.UserID %>, '<%= u.FirstName %> <%= u.LastName %>')">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="
+  display:none;position:fixed;bottom:28px;right:28px;
+  background:var(--text-dark);color:white;padding:14px 22px;
+  border-radius:10px;font-size:14px;z-index:999;">
+</div>
+
+<script>
+async function deleteUser(id, name) {
+  if (!confirm('Delete user "' + name + '"?\nThis will also cancel all their upcoming bookings.')) return;
+  const res  = await fetch('/admin/users/delete', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: id })
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('urow-' + id).remove();
+    showToast('✅ User deleted.');
+  } else {
+    showToast('❌ ' + data.message);
+  }
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+</script>
+</body>
+</html>

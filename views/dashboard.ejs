@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — TravelGo</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% const currentPage = '/dashboard'; %>
+<div class="app-layout">
+
+  <%- include('partials/sidebar') %>
+
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title">Dashboard</div>
+      <div class="topbar-user">
+        <div class="avatar"><%= user.FirstName[0].toUpperCase() %></div>
+        <span><%= user.FirstName %> <%= user.LastName %></span>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="page-body">
+
+      <p style="color:var(--text-mid);margin-bottom:28px;font-size:15px;">
+        👋 Welcome back, <strong><%= user.FirstName %></strong>!
+        Here's your travel summary.
+      </p>
+
+      <!-- Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-icon">🕐</span>
+          <span class="stat-value"><%= stats.UpcomingBookings || 0 %></span>
+          <span class="stat-label">Upcoming Trips</span>
+        </div>
+        <div class="stat-card" style="border-top-color:#2E9E6B;">
+          <span class="stat-icon">✅</span>
+          <span class="stat-value"><%= stats.CompletedTrips || 0 %></span>
+          <span class="stat-label">Completed Trips</span>
+        </div>
+        <div class="stat-card" style="border-top-color:#D9534F;">
+          <span class="stat-icon">❌</span>
+          <span class="stat-value"><%= stats.CancelledTrips || 0 %></span>
+          <span class="stat-label">Cancelled Trips</span>
+        </div>
+        <div class="stat-card" style="border-top-color:#E8A020;">
+          <span class="stat-icon">💰</span>
+          <span class="stat-value">PKR <%= Number(stats.TotalSpending || 0).toLocaleString() %></span>
+          <span class="stat-label">Total Spent</span>
+        </div>
+      </div>
+
+      <!-- Upcoming Bookings -->
+      <div class="section-header">
+        <h2 class="section-title">Upcoming Bookings</h2>
+        <div class="flex" style="gap:10px;">
+          <a href="/booking" class="btn btn-mint btn-sm">+ Book New Trip</a>
+          <a href="/dashboard/history" class="btn btn-outline btn-sm">View All History</a>
+        </div>
+      </div>
+
+      <% if (upcoming.length === 0) { %>
+        <div class="card" style="text-align:center;padding:48px;">
+          <div style="font-size:48px;margin-bottom:12px;">🗺️</div>
+          <p style="color:var(--text-mid);font-size:16px;">No upcoming trips. Ready to plan your next journey?</p>
+          <a href="/booking" class="btn btn-mint" style="margin-top:20px;">Browse Trips</a>
+        </div>
+      <% } else { %>
+        <% upcoming.forEach(b => { %>
+          <div class="booking-card" id="bcard-<%= b.BookingID %>">
+            <div>
+              <span style="font-size:20px;">
+                <%= b.TransportType === 'Bus' ? '🚌' : b.TransportType === 'Train' ? '🚂' : '✈' %>
+              </span>
+            </div>
+            <div style="flex:1;">
+              <div class="booking-route">
+                <%= b.From_City %> → <%= b.To_City %>
+              </div>
+              <div class="booking-meta">
+                <%= b.TransportName %> &nbsp;·&nbsp; Seat <%= b.SeatNumber %>
+                &nbsp;·&nbsp; Paid via <%= b.PaymentMethod || 'N/A' %>
+              </div>
+            </div>
+            <div class="booking-date">
+              📅 <%= new Date(b.TripDate).toLocaleDateString('en-PK', {day:'numeric',month:'short',year:'numeric'}) %>
+              <br>
+              🕐 <%= b.DepartureTime ? String(b.DepartureTime).slice(0,5) : '' %>
+            </div>
+            <div>
+              <span class="badge badge-upcoming">Upcoming</span>
+            </div>
+            <div>
+              <button class="btn btn-danger btn-sm"
+                      onclick="cancelBooking(<%= b.BookingID %>)">
+                Cancel
+              </button>
+            </div>
+          </div>
+        <% }) %>
+      <% } %>
+
+    </div><!-- /page-body -->
+  </div><!-- /main -->
+</div>
+
+<!-- Cancel confirmation toast -->
+<div id="toast" style="
+  display:none;position:fixed;bottom:28px;right:28px;
+  background:var(--text-dark);color:white;padding:14px 22px;
+  border-radius:10px;font-size:14px;z-index:999;box-shadow:var(--shadow-lg);">
+</div>
+
+<script>
+async function cancelBooking(id) {
+  if (!confirm('Cancel this booking?')) return;
+  const res  = await fetch('/dashboard/cancel', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ bookingId: id })
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('bcard-' + id).remove();
+    showToast('✅ Booking cancelled.');
+    // reload to refresh stats
+    setTimeout(() => location.reload(), 1200);
+  } else {
+    showToast('❌ ' + data.message);
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+</script>
+</body>
+</html>

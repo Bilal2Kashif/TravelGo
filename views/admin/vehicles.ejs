@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vehicles — TravelGo Admin</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% const adminPage = '/admin/vehicles'; %>
+<div class="app-layout">
+  <%- include('sidebar') %>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Vehicle Management</div>
+      <div class="topbar-user">
+        <div class="avatar" style="background:var(--warning);">A</div>
+        <span>Admin</span>
+      </div>
+    </div>
+    <div class="page-body">
+
+      <div class="two-col" style="align-items:start;">
+
+        <!-- Add Vehicle -->
+        <div class="card">
+          <h3 class="section-title mb-2">🚌 Register New Vehicle</h3>
+
+          <% if (error) { %>
+            <div class="alert alert-error" style="margin-top:12px;">⚠️ <%= error %></div>
+          <% } %>
+          <% if (typeof query !== 'undefined' && query && query.success) { %>
+            <div class="alert alert-success" style="margin-top:12px;">✅ Vehicle added!</div>
+          <% } %>
+
+          <form action="/admin/vehicles/add" method="POST" style="margin-top:20px;">
+            <div class="form-group">
+              <label class="form-label">Vehicle Name</label>
+              <input type="text" name="transportName" class="form-control"
+                     placeholder="e.g. Daewoo Express" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Type</label>
+              <select name="type" class="form-control" required>
+                <option value="Bus">🚌 Bus</option>
+                <option value="Train">🚂 Train</option>
+                <option value="Plane">✈ Plane</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Capacity (seats)</label>
+              <input type="number" name="capacity" class="form-control"
+                     min="1" max="1000" placeholder="45" required>
+            </div>
+            <button type="submit" class="btn btn-mint btn-full btn-lg" style="margin-top:8px;">
+              Add Vehicle
+            </button>
+          </form>
+        </div>
+
+        <!-- Vehicle List -->
+        <div>
+          <h2 class="section-title" style="margin-bottom:16px;">
+            Fleet (<%= vehicles.length %> vehicles)
+          </h2>
+          <div class="card" style="padding:0;overflow:hidden;">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Capacity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% vehicles.forEach(v => { %>
+                    <tr>
+                      <td>#<%= v.TransportID %></td>
+                      <td><strong><%= v.TransportName %></strong></td>
+                      <td>
+                        <%= v.Type === 'Bus' ? '🚌' : v.Type === 'Train' ? '🚂' : '✈' %>
+                        <%= v.Type %>
+                      </td>
+                      <td><%= v.Capacity %> seats</td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

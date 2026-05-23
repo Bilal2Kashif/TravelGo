@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Dashboard — TravelGo</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<% const adminPage = '/admin'; %>
+<div class="app-layout">
+
+  <%- include('sidebar') %>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Admin Dashboard</div>
+      <div class="topbar-user">
+        <div class="avatar" style="background:var(--warning);">A</div>
+        <span>Admin</span>
+      </div>
+    </div>
+
+    <div class="page-body">
+
+      <!-- Stats Grid -->
+      <div class="admin-stat-grid">
+        <div class="admin-stat">
+          <div class="val">👥 <%= stats.TotalUsers || 0 %></div>
+          <div class="lbl">Total Users</div>
+        </div>
+        <div class="admin-stat">
+          <div class="val">🎫 <%= stats.TotalBookings || 0 %></div>
+          <div class="lbl">Total Bookings</div>
+        </div>
+        <div class="admin-stat" style="border-top-color:var(--warning);">
+          <div class="val">🕐 <%= stats.ActiveBookings || 0 %></div>
+          <div class="lbl">Active Bookings</div>
+        </div>
+        <div class="admin-stat" style="border-top-color:#2E9E6B;">
+          <div class="val">✅ <%= stats.CompletedBookings || 0 %></div>
+          <div class="lbl">Completed</div>
+        </div>
+        <div class="admin-stat" style="border-top-color:var(--danger);">
+          <div class="val">❌ <%= stats.CancelledBookings || 0 %></div>
+          <div class="lbl">Cancelled</div>
+        </div>
+        <div class="admin-stat" style="border-top-color:var(--warning);">
+          <div class="val">💰 PKR <%= Number(stats.TotalRevenue || 0).toLocaleString() %></div>
+          <div class="lbl">Total Revenue</div>
+        </div>
+        <div class="admin-stat">
+          <div class="val">🗺️ <%= stats.UpcomingTrips || 0 %></div>
+          <div class="lbl">Upcoming Trips</div>
+        </div>
+        <div class="admin-stat">
+          <div class="val">🚌 <%= stats.TotalVehicles || 0 %></div>
+          <div class="lbl">Total Vehicles</div>
+        </div>
+      </div>
+
+      <!-- Two col: Popular Routes + Revenue by Type -->
+      <div class="two-col">
+
+        <div class="card">
+          <h3 class="section-title" style="margin-bottom:18px;">🔥 Popular Routes</h3>
+          <% if (routes.length === 0) { %>
+            <p style="color:var(--text-light);">No data yet.</p>
+          <% } else { %>
+            <% routes.forEach((r, i) => { %>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--ice);">
+                <div>
+                  <span style="font-weight:700;">#<%= i+1 %></span>
+                  <span style="margin-left:8px;"><%= r.From_City %> → <%= r.To_City %></span>
+                </div>
+                <span class="badge badge-upcoming"><%= r.TotalBookings %> bookings</span>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <div class="card">
+          <h3 class="section-title" style="margin-bottom:18px;">💹 Revenue by Transport</h3>
+          <% if (revenue.length === 0) { %>
+            <p style="color:var(--text-light);">No revenue data yet.</p>
+          <% } else { %>
+            <% revenue.forEach(r => { %>
+              <div style="margin-bottom:18px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="font-weight:600;">
+                    <%= r.TransportType === 'Bus' ? '🚌' : r.TransportType === 'Train' ? '🚂' : '✈' %>
+                    <%= r.TransportType %>
+                  </span>
+                  <span style="font-weight:800;color:var(--mint);">
+                    PKR <%= Number(r.TotalRevenue).toLocaleString() %>
+                  </span>
+                </div>
+                <div style="background:var(--ice);border-radius:4px;height:8px;">
+                  <div style="background:var(--mint);height:8px;border-radius:4px;width:<%= Math.min(100, (r.TotalRevenue / (revenue.reduce((a,b) => a + b.TotalRevenue, 0) || 1)) * 100) %>%;"></div>
+                </div>
+                <div style="font-size:12px;color:var(--text-light);margin-top:2px;"><%= r.TotalBookings %> bookings</div>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+
+      </div>
+
+      <!-- Quick links -->
+      <div class="card mt-4">
+        <h3 class="section-title mb-2">Quick Actions</h3>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;">
+          <a href="/admin/trips"    class="btn btn-mint">➕ Add New Trip</a>
+          <a href="/admin/vehicles" class="btn btn-mint">🚌 Add Vehicle</a>
+          <a href="/admin/bookings" class="btn btn-outline">📋 All Bookings</a>
+          <a href="/admin/users"    class="btn btn-outline">👥 Manage Users</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
